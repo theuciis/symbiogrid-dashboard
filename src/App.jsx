@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import MetricCard from "./components/MetricCard";
-// Impor komponen grafik dari Recharts
+import Login from "./components/Login"; // Mengimpor komponen login baru
 import {
   ResponsiveContainer,
   AreaChart,
@@ -12,14 +12,17 @@ import {
 } from "recharts";
 
 export default function App() {
-  // 1. Data Tiruan untuk Kartu Metrik
+  // State untuk mengecek apakah pengguna sudah login atau belum
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // Data Tiruan untuk Kartu Metrik
   const [dataTiruan] = useState({
     gas_metana: "08.9",
     daya_listrik: "4.2",
     status_katup: "TERBUKA",
   });
 
-  // 2. Data Tiruan Berbentuk Array untuk Grafik Kontinuitas Energi (Simulasi 6 Jam Terakhir)
+  // Data Tiruan Grafik
   const [dataGrafik] = useState([
     { jam: "04:00", energi: 2.1, metana: 5.4 },
     { jam: "05:00", energi: 2.8, metana: 6.2 },
@@ -29,6 +32,12 @@ export default function App() {
     { jam: "09:00", energi: 4.2, metana: 8.9 },
   ]);
 
+  // Jika belum login, tampilkan halaman Login saja
+  if (!isLoggedIn) {
+    return <Login onLoginSuccess={() => setIsLoggedIn(true)} />;
+  }
+
+  // Jika sudah login, barulah dashboard megah ini dirender
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 font-sans p-8">
       {/* Header */}
@@ -41,11 +50,20 @@ export default function App() {
             Jalur Pengembangan: frontend-design
           </p>
         </div>
-        <div className="flex items-center space-x-2 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700">
-          <span className="h-2.5 w-2.5 rounded-full bg-amber-500 animate-pulse"></span>
-          <span className="text-xs text-slate-300 font-medium">
-            Mode Simulasi Grafik
-          </span>
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700">
+            <span className="h-2.5 w-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+            <span className="text-xs text-slate-300 font-medium">
+              Mode Simulasi Grafik
+            </span>
+          </div>
+          {/* Tombol Keluar / Keluar Sistem */}
+          <button
+            onClick={() => setIsLoggedIn(false)}
+            className="text-xs bg-rose-500/10 text-rose-400 border border-rose-500/20 px-3 py-1.5 rounded-xl hover:bg-rose-500 hover:text-white transition-colors cursor-pointer"
+          >
+            Keluar
+          </button>
         </div>
       </div>
 
@@ -85,7 +103,7 @@ export default function App() {
         </div>
       </div>
 
-      {/* SEKSI GRAFIK BARU */}
+      {/* SEKSI GRAFIK */}
       <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl">
         <div className="mb-4">
           <h3 className="text-lg font-bold text-white">
@@ -96,7 +114,6 @@ export default function App() {
           </p>
         </div>
 
-        {/* Wadah Grafik Responsive */}
         <div className="h-72 w-full mt-6">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
@@ -120,7 +137,6 @@ export default function App() {
                 }}
                 labelStyle={{ color: "#fff" }}
               />
-              {/* Garis Area Grafik */}
               <Area
                 type="monotone"
                 dataKey="energi"
