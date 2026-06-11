@@ -12,17 +12,18 @@ import {
 } from "recharts";
 
 export default function App() {
-  // State untuk mengecek apakah pengguna sudah login atau belum
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Data Tiruan untuk Kartu Metrik
+  // State interaktif untuk mengontrol status katup langsung dari frontend
+  const [statusKatup, setStatusKatup] = useState("TERBUKA");
+  // State untuk memunculkan notifikasi pop-up simulasi
+  const [notifikasi, setNotifikasi] = useState(null);
+
   const [dataTiruan] = useState({
     gas_metana: "08.9",
     daya_listrik: "4.2",
-    status_katup: "TERBUKA",
   });
 
-  // Data Tiruan Grafik
   const [dataGrafik] = useState([
     { jam: "04:00", energi: 2.1, metana: 5.4 },
     { jam: "05:00", energi: 2.8, metana: 6.2 },
@@ -32,14 +33,42 @@ export default function App() {
     { jam: "09:00", energi: 4.2, metana: 8.9 },
   ]);
 
-  // Jika belum login, tampilkan halaman Login saja
+  // Fungsi interaktif untuk mengubah status katup gas
+  const toggleKatup = () => {
+    if (statusKatup === "TERBUKA") {
+      setStatusKatup("TERTUTUP");
+      tampilkanNotifikasi(
+        "⚠️ Peringatan: Katup gas telah ditutup secara manual oleh Admin!",
+      );
+    } else {
+      setStatusKatup("TERBUKA");
+      tampilkanNotifikasi(
+        "✅ Sukses: Katup gas berhasil dibuka kembali. Aliran metana normal.",
+      );
+    }
+  };
+
+  // Fungsi pembantu untuk memunculkan pop-up selama 4 detik
+  const tampilkanNotifikasi = (pesan) => {
+    setNotifikasi(pesan);
+    setTimeout(() => {
+      setNotifikasi(null);
+    }, 4000);
+  };
+
   if (!isLoggedIn) {
     return <Login onLoginSuccess={() => setIsLoggedIn(true)} />;
   }
 
-  // Jika sudah login, barulah dashboard megah ini dirender
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 font-sans p-8">
+    <div className="min-h-screen bg-slate-900 text-slate-100 font-sans p-8 relative">
+      {/* POP-UP NOTIFIKASI SIMULASI */}
+      {notifikasi && (
+        <div className="fixed top-5 right-5 z-50 bg-slate-800 border-l-4 border-emerald-500 text-white px-5 py-4 rounded-xl shadow-2xl flex items-center space-x-3 transition-all duration-300 animate-bounce">
+          <span className="text-sm font-medium">{notifikasi}</span>
+        </div>
+      )}
+
       {/* Header */}
       <div className="mb-8 border-b border-slate-800 pb-4 flex justify-between items-center">
         <div>
@@ -57,7 +86,6 @@ export default function App() {
               Mode Simulasi Grafik
             </span>
           </div>
-          {/* Tombol Keluar / Keluar Sistem */}
           <button
             onClick={() => setIsLoggedIn(false)}
             className="text-xs bg-rose-500/10 text-rose-400 border border-rose-500/20 px-3 py-1.5 rounded-xl hover:bg-rose-500 hover:text-white transition-colors cursor-pointer"
@@ -85,25 +113,45 @@ export default function App() {
           icon={<span>⚡</span>}
         />
 
-        <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
-          <p className="text-sm font-medium text-slate-400 uppercase tracking-wider">
-            Status Katup Otomatis
-          </p>
-          <div className="mt-4">
-            <span
-              className={`px-4 py-2 rounded-xl text-sm font-bold ${
-                dataTiruan.status_katup === "TERBUKA"
-                  ? "bg-emerald-500/20 text-emerald-400"
-                  : "bg-rose-500/20 text-rose-400"
+        {/* KARTU KONTROL KATUP INTERAKTIF */}
+        <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl flex flex-col justify-between">
+          <div>
+            <p className="text-sm font-medium text-slate-400 uppercase tracking-wider">
+              Status Katup Otomatis
+            </p>
+            <div className="mt-3">
+              <span
+                className={`inline-block px-3 py-1 rounded-xl text-xs font-bold tracking-wide ${
+                  statusKatup === "TERBUKA"
+                    ? "bg-emerald-500/20 text-emerald-400"
+                    : "bg-rose-500/20 text-rose-400"
+                }`}
+              >
+                {statusKatup}
+              </span>
+            </div>
+          </div>
+
+          {/* Tombol Sakelar Aksi Manual */}
+          <div className="mt-4 pt-4 border-t border-slate-700 flex items-center justify-between">
+            <span className="text-xs text-slate-400 font-medium">
+              Kontrol Katup (Manual)
+            </span>
+            <button
+              onClick={toggleKatup}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer ${
+                statusKatup === "TERBUKA"
+                  ? "bg-rose-500 text-white hover:bg-rose-600 shadow-rose-500/10"
+                  : "bg-emerald-500 text-slate-900 hover:bg-emerald-600 shadow-emerald-500/10"
               }`}
             >
-              {dataTiruan.status_katup}
-            </span>
+              {statusKatup === "TERBUKA" ? "Tutup Katup 🛑" : "Buka Katup 🔓"}
+            </button>
           </div>
         </div>
       </div>
 
-      {/* SEKSI GRAFIK */}
+      {/* Seksi Grafik */}
       <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl">
         <div className="mb-4">
           <h3 className="text-lg font-bold text-white">
